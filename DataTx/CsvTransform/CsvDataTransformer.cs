@@ -21,7 +21,7 @@ namespace CsvTransform
 
 	public class TransformLog
 	{
-		public readonly int LineNumber;
+		public readonly long LineNumber;
 		public readonly string InputLine;
 		public readonly string ErrorMessage;
 
@@ -42,7 +42,6 @@ namespace CsvTransform
 	public class CsvDataTransformer
 	{
 		private const char csvDelim = ',';
-		private List<string> csvData;
 		private CsvDataFieldTransforms[] outputFieldTransforms;
 		public CsvDataTransformer(CsvDataFieldTransforms[] dataFieldTransforms)
 		{
@@ -51,7 +50,7 @@ namespace CsvTransform
 			this.outputFieldTransforms = dataFieldTransforms;
 		}
 
-		public TransformerOutput Transform(List<string> inputLines, int startLineNo)
+		public TransformerOutput Transform(List<string> inputLines, long startLineNo)
 		{
 			TransformerOutput result = new TransformerOutput()
 			{
@@ -62,7 +61,7 @@ namespace CsvTransform
 			Parallel.For(0, inputLines.Count, (index) =>
 			{
 				TransformLog logOutput;
-				var output = TransformInputLine(startLineNo + index, inputLines[index], out logOutput);
+				var output = TransformInputLine(startLineNo + (long )index, inputLines[index], out logOutput);
 
 				result.OutputLines.Add(output);
 				if (logOutput != null) { result.Errors.Add(logOutput); }
@@ -71,7 +70,7 @@ namespace CsvTransform
 			return result;
 		}
 
-		private string TransformInputLine(int lineNum, string currentLine, out TransformLog logOutput)
+		private string TransformInputLine(long lineNum, string currentLine, out TransformLog logOutput)
 		{
 			List<string> outputFields = new List<string>();
 			logOutput = null;
