@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CsvTransform
@@ -25,7 +24,7 @@ namespace CsvTransform
 		public readonly string InputLine;
 		public readonly string ErrorMessage;
 
-		public TransformLog(int lineNum, string input, string error)
+		public TransformLog(long lineNum, string input, string error)
 		{
 			LineNumber = lineNum;
 			InputLine = input;
@@ -35,6 +34,7 @@ namespace CsvTransform
 
 	public class TransformerOutput
 	{
+		public long StartLineNo;
 		public List<string> OutputLines;
 		public List<TransformLog> Errors;
 	}
@@ -54,6 +54,7 @@ namespace CsvTransform
 		{
 			TransformerOutput result = new TransformerOutput()
 			{
+				StartLineNo = startLineNo,
 				OutputLines = new List<string>(),
 				Errors = new List<TransformLog>()
 			};
@@ -84,7 +85,10 @@ namespace CsvTransform
 			string[] fields = currentLine.Split(csvDelim);
 			for(int i = 0; i < outputFieldTransforms.Length; ++i)
 			{
-				var inputFields = outputFieldTransforms[i].CsvFieldPositions.Select(p => fields[i]).ToArray();
+				var inputFields = outputFieldTransforms[i].FieldTransformer.NeedsInputFields
+					? outputFieldTransforms[i].CsvFieldPositions.Select(p => fields[p]).ToArray()
+					: null;
+
 				var transformedField = outputFieldTransforms[i].FieldTransformer.TransformField(inputFields);
 				outputFields.Add(transformedField);
 			}

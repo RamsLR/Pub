@@ -13,12 +13,14 @@ namespace CsvTransform
 {
 	public interface IFieldTransform
 	{
+		bool NeedsInputFields { get; }
+
 		string TransformField(params string[] inputFields);
 	}
 
-	public class FieldTransformFactory
+	public static class FieldTransformFactory
 	{
-		public IFieldTransform GetFieldTransformer(string name)
+		public static IFieldTransform GetFieldTransformer(string name)
 		{
 			switch (name)
 			{
@@ -32,13 +34,36 @@ namespace CsvTransform
 
 				case "Quantity": return new QuantityFieldTransformer();
 
+				case "KgUnit": return new KgUnitFieldTransformer();
+
 				default: throw new NotImplementedException();
 			}
 		}
 	}
 
+	//public class ConstantFieldTransformer : IFieldTransform
+	//{
+
+	//	public string TransformField(params string[] inputFields)
+	//	{
+	//		return string.Join(",", inputFields);
+	//	}
+	//}
+
+	public class KgUnitFieldTransformer : IFieldTransform
+	{
+		public bool NeedsInputFields => false;
+
+		public string TransformField(params string[] inputFields)
+		{
+			return string.Join(",", inputFields);
+		}
+	}
+
 	public class NumberFieldTransformer : IFieldTransform
 	{
+		public bool NeedsInputFields => true;
+
 		public string TransformField(params string[] inputFields)
 		{
 			if (inputFields == null || inputFields.Length != 1 || string.IsNullOrEmpty(inputFields[0]))
@@ -58,6 +83,8 @@ namespace CsvTransform
 
 	public class DateTimeFieldTransformer : IFieldTransform
 	{
+		public bool NeedsInputFields => true;
+
 		public string TransformField(params string[] inputFields)
 		{
 			if (inputFields == null || inputFields.Length != 3)
@@ -67,7 +94,7 @@ namespace CsvTransform
 
 			try
 			{
-				var result = new DateTime(int.Parse(inputFields[0]), int.Parse(inputFields[1]), int.Parse(inputFields[2])));
+				var result = new DateTime(int.Parse(inputFields[0]), int.Parse(inputFields[1]), int.Parse(inputFields[2]));
 				return result.ToString("d");
 			}
 			catch (Exception e)
@@ -79,6 +106,8 @@ namespace CsvTransform
 
 	public class ProductIdFieldTransformer : IFieldTransform
 	{
+		public bool NeedsInputFields => true;
+
 		public string TransformField(params string[] inputFields)
 		{
 			if (inputFields == null || inputFields.Length != 1 || string.IsNullOrEmpty(inputFields[0]))
@@ -98,6 +127,8 @@ namespace CsvTransform
 
 	public class ProductNameFieldTransformer : IFieldTransform
 	{
+		public bool NeedsInputFields => true;
+
 		public string TransformField(params string[] inputFields)
 		{
 			if (inputFields == null || inputFields.Length != 1 || string.IsNullOrEmpty(inputFields[0]))
@@ -114,6 +145,8 @@ namespace CsvTransform
 
 	public class QuantityFieldTransformer : IFieldTransform
 	{
+		public bool NeedsInputFields => true;
+
 		public string TransformField(params string[] inputFields)
 		{
 			if (inputFields == null || inputFields.Length != 1 || string.IsNullOrEmpty(inputFields[0]))
