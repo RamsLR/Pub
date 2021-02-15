@@ -9,10 +9,9 @@ namespace CsvTransform
 {
 	public static class FileTxManager
 	{
-		public static async void TransformCsvDataFileAsync(string sourcePath, string targetPath, CsvDataFieldTransforms[] fieldTransformConfigs)
+		public static async void TransformCsvDataFileAsync(string sourcePath, string targetPath, 
+			CsvDataFieldTransforms[] fieldTransformConfigs, string[] outputFieldNames)
 		{
-			long currentLineNum = 0;
-
 			if (!File.Exists(sourcePath)) throw new FileNotFoundException(sourcePath);
 
 			CsvDataTransformer dataTransformer = new CsvDataTransformer(fieldTransformConfigs);
@@ -23,15 +22,16 @@ namespace CsvTransform
 
 			var txOutputList = await GetTransformedOutput(transformTasks);
 
-			WriteTransformedOutput(targetPath, txOutputList);
+			WriteTransformedOutput(targetPath, outputFieldNames, txOutputList);
 
 		}
 
-		private static void WriteTransformedOutput(string targetPath, List<TransformerOutput> txOutputList)
+		private static void WriteTransformedOutput(string targetPath, string[] outputFieldNames, List<TransformerOutput> txOutputList)
 		{
 			using (StreamWriter ow = new StreamWriter(targetPath))
 			using (StreamWriter lw = new StreamWriter(targetPath + ".log"))
 			{
+				ow.WriteLine(string.Join(",", outputFieldNames));
 				foreach (var to in txOutputList)
 				{
 					to.OutputLines.ForEach(o => ow.WriteLine(o));
@@ -62,7 +62,8 @@ namespace CsvTransform
 
 			foreach (var lines in ReadBlockOfLines(sourcePath, 100))
 			{
-				var task = Task<TransformerOutput>.Factory.StartNew(() => dataTransformer.Transform(lines, currentLineNum));
+				var taskStartLineNum = currentLineNum;
+				var task = Task<TransformerOutput>.Factory.StartNew(() => dataTransformer.Transform(lines, taskStartLineNum));
 				transformTasks.Add(task);
 				currentLineNum += lines.Count;
 			}

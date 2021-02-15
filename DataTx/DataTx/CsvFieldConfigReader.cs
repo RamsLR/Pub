@@ -7,7 +7,9 @@ namespace DataTx
 {
 	public static class CsvFieldConfigReader
 	{
-		public static List<CsvDataFieldTransforms> ReadCsvDataFieldTransformConfigs()
+		public static 
+			(List<CsvDataFieldTransforms> FieldTransforms, List<string> OutputFieldNames) 
+			ReadCsvDataFieldTransformConfigs()
 		{
 			const string fieldConfigKeyPrefix = "OutputField";
 			var configuredTransforms = new List<CsvDataFieldTransforms>();
@@ -30,7 +32,10 @@ namespace DataTx
 				List<int> inputFieldPositions = new List<int>();
 				foreach (string fieldPos in positionStrings)
 				{
-					inputFieldPositions.Add(int.Parse(fieldPos));
+					if (fieldPos.Length > 0)
+					{
+						inputFieldPositions.Add(int.Parse(fieldPos));
+					}
 				}
 
 				outputFieldNames.Add(configAttributes[1]); // output field name
@@ -38,10 +43,11 @@ namespace DataTx
 				var fieldTransformer = FieldTransformFactory.GetFieldTransformer(configAttributes[2]);
 				var csvDataFieldTransform = new CsvDataFieldTransforms(inputFieldPositions.ToArray(), fieldTransformer);
 				configuredTransforms.Add(csvDataFieldTransform);
+				index++;
 			}
 			while (fieldConfigValue.Length > 0);
 
-			return configuredTransforms;
+			return (configuredTransforms, outputFieldNames);
 		}
 	}
 }

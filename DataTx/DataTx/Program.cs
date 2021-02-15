@@ -18,7 +18,9 @@ namespace DataTx
 			Console.WriteLine("Finished reading the file transform configurations.\r\n");
 			Console.WriteLine("Proceeding with converting input csv file to output csv file now.");
 
-			FileTxManager.TransformCsvDataFileAsync(args[0], args[1], configuredTransforms.ToArray());
+			FileTxManager.TransformCsvDataFileAsync(args[0], args[1], 
+				configuredTransforms.FieldTransforms.ToArray(), 
+				configuredTransforms.OutputFieldNames.ToArray());
 
 			Console.WriteLine("Done.");
 		}

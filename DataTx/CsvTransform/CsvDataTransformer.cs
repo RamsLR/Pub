@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CsvTransform
@@ -12,7 +13,11 @@ namespace CsvTransform
 
 		public CsvDataFieldTransforms(int[] fieldPositions, IFieldTransform fieldTransformer)
 		{
-			if (fieldPositions == null || fieldPositions.Length == 0) { throw new ArgumentException(nameof(fieldPositions));  }
+			if (fieldTransformer.NeedsInputFields && 
+				(fieldPositions == null || fieldPositions.Length == 0)) 
+			{ 
+				throw new ArgumentException(nameof(fieldPositions));
+			}
 			CsvFieldPositions = fieldPositions;
 			FieldTransformer = fieldTransformer;
 		}
@@ -82,7 +87,7 @@ namespace CsvTransform
 				return string.Empty;
 			}
 
-			string[] fields = currentLine.Split(csvDelim);
+			string[] fields = SplitEscapedFieldsInLine(currentLine);
 			for(int i = 0; i < outputFieldTransforms.Length; ++i)
 			{
 				var inputFields = outputFieldTransforms[i].FieldTransformer.NeedsInputFields
@@ -94,6 +99,35 @@ namespace CsvTransform
 			}
 
 			return string.Join(csvDelim.ToString(), outputFields);
+		}
+
+		private string[] SplitEscapedFieldsInLine(string currentLine)
+		{
+			const char quoteChar = '"';
+			var fields = new List<string>();
+			fields.AddRange(currentLine.Split(csvDelim));
+
+			for(var i = 0; i < fields.Count; ++i)
+			{
+				var field = fields[i];
+				if (field.Length > 0 && field[0] == quoteChar)
+				{
+					fields[i] = fields[i].Substring(1);
+					for (int j = i++; i < fields.Count; ++i)
+					{
+						var tempField = fields[i];
+						if (tempField.Length > 0 && tempField[tempField.Length - 1] == quoteChar)
+						{
+							fields[i] = fields[i].Substring(0, tempField.Length - 1);
+							fields[j] = string.Join(csvDelim.ToString(), fields.Skip(j).Take(i - j + 1).ToArray());
+							fields.RemoveRange(j + 1, i - j);
+							break;
+						}
+					}
+				}
+			}
+
+			return fields.ToArray();
 		}
 	}
 }

@@ -56,7 +56,7 @@ namespace CsvTransform
 
 		public string TransformField(params string[] inputFields)
 		{
-			return string.Join(",", inputFields);
+			return "kg";
 		}
 	}
 
