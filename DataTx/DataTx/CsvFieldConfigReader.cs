@@ -40,6 +40,8 @@ namespace DataTx
 
 				outputFieldNames.Add(configAttributes[1]); // output field name
 
+				// uses the factory to get the appropriate IFieldTransform object
+
 				var fieldTransformer = FieldTransformFactory.GetFieldTransformer(configAttributes[2]);
 				var csvDataFieldTransform = new CsvDataFieldTransforms(inputFieldPositions.ToArray(), fieldTransformer);
 				configuredTransforms.Add(csvDataFieldTransform);

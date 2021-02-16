@@ -1,0 +1,4 @@
+12|Invalid order date field - [2006/13/13].|1012,2006,13,13,P-10013,def,"888,000.01",def,def
+20|Invalid order number field - [102«0].|102«0,1998,10,21,P-10021,abc,"1,776,000.01",abc,abc
+28|Invalid order date field - [2006/2/29].|1028,2006,2,29,P-10026,ghi,"888,000.01",ghi,ghi
+31|Invalid order date field - [2009/2/32].|1031,2009,2,32,dsc!,def,"2,331,000.01",def,def

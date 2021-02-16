@@ -16,11 +16,17 @@ namespace CsvTransform
 
 			CsvDataTransformer dataTransformer = new CsvDataTransformer(fieldTransformConfigs);
 
+			// generated the task batch of processing the input file..
+
 			var transformTasks = GenerateTransformTasks(sourcePath, dataTransformer);
 
 			Task.WaitAny(transformTasks.ToArray());
 
+			// process each completed task to get the output 
+
 			var txOutputList = await GetTransformedOutput(transformTasks);
+
+			// write the output and errors to the files..
 
 			WriteTransformedOutput(targetPath, outputFieldNames, txOutputList);
 
@@ -62,6 +68,7 @@ namespace CsvTransform
 
 			foreach (var lines in ReadBlockOfLines(sourcePath, 10))
 			{
+				// create a task for each block of lines - configured as 10 lines for now (can be increased to int.MAXVALUE)
 				var taskStartLineNum = currentLineNum;
 				var task = Task<TransformerOutput>.Factory.StartNew(() => dataTransformer.Transform(lines, taskStartLineNum));
 				transformTasks.Add(task);

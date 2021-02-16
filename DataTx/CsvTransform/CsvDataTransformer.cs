@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CsvTransform
@@ -57,6 +56,9 @@ namespace CsvTransform
 
 		public TransformerOutput Transform(List<string> inputLines, long startLineNo)
 		{
+			// each block of lines processed here by noting the starting line no according to the input file..
+			// the transformed output and error logs are stored in the TransformerOutput object
+
 			TransformerOutput result = new TransformerOutput()
 			{
 				StartLineNo = startLineNo,
@@ -64,7 +66,15 @@ namespace CsvTransform
 				Errors = new List<TransformLog>()
 			};
 
-			Parallel.For(0, inputLines.Count, (index) =>
+			// each line can be processed in parallel as there are no thread dependency between the lines
+			// but I am finding a bug in inserting the output lines correctly in their sorted order.. 
+			// as I am running out of time - I am switching this to a regular for loop but 
+			// the bug should be easy to find and fix ..  
+			//
+			//SortedDictionary<int, string> loopOutputLines = new SortedDictionary<int, string>();
+			//
+			//Parallel.For(0, inputLines.Count, (index) =>
+			for(int index = 0; index < inputLines.Count; ++index)
 			{
 				string inputLine = inputLines[index];
 				string outputLine = string.Empty;
@@ -80,9 +90,15 @@ namespace CsvTransform
 					logOutput = logOutput ?? new TransformLog(currentLineNum, inputLine, e.Message); //e.ToString());
 				}
 
-				result.OutputLines.Add(outputLine);
+				result.OutputLines.Add(outputLine); //loopOutputLines[index] = outputLine;
 				if (logOutput != null) { result.Errors.Add(logOutput); }
-			});
+			} 
+			// );
+
+			// below block needed if parallel.for is used..
+			// return the sorted list of output and errors by the line no.
+			//result.OutputLines = loopOutputLines.Values.ToList();
+			//result.Errors = result.Errors.OrderBy(e => e.LineNumber).ToList();
 
 			return result;
 		}
@@ -98,7 +114,7 @@ namespace CsvTransform
 				return string.Empty;
 			}
 
-			string[] fields = SplitEscapedFieldsInLine(currentLine);
+			string[] fields = SplitEscapedFieldsInLine(currentLine); // this is used to handle escaped csv fields like for quantity - > "2,500.25" which will be output as "25000.25,kg"
 			for(int i = 0; i < outputFieldTransforms.Length; ++i)
 			{
 				var inputFields = outputFieldTransforms[i].FieldTransformer.NeedsInputFields

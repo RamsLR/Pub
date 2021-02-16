@@ -41,15 +41,6 @@ namespace CsvTransform
 		}
 	}
 
-	//public class ConstantFieldTransformer : IFieldTransform
-	//{
-
-	//	public string TransformField(params string[] inputFields)
-	//	{
-	//		return string.Join(",", inputFields);
-	//	}
-	//}
-
 	public class KgUnitFieldTransformer : IFieldTransform
 	{
 		public bool NeedsInputFields => false;
