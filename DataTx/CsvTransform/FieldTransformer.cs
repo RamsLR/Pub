@@ -68,7 +68,7 @@ namespace CsvTransform
 		{
 			if (inputFields == null || inputFields.Length != 1 || string.IsNullOrEmpty(inputFields[0]))
 			{
-				throw new ArgumentException(nameof(inputFields));
+				throw new ArgumentException($"Invalid order number field - [{inputFields[0]}].");
 			}
 
 			var result = inputFields[0].Trim();
@@ -77,7 +77,7 @@ namespace CsvTransform
 				throw new ArgumentException(nameof(inputFields));
 			}
 
-			return ulong.TryParse(inputFields[0], out _) ? result : throw new ArgumentException(nameof(inputFields));
+			return ulong.TryParse(inputFields[0], out _) ? result : throw new ArgumentException($"Invalid order number field - [{inputFields[0]}].");
 		}
 	}
 
@@ -89,7 +89,7 @@ namespace CsvTransform
 		{
 			if (inputFields == null || inputFields.Length != 3)
 			{
-				throw new ArgumentException(nameof(inputFields));
+				throw new ArgumentException($"Invalid order date field - [{inputFields[0]}].");
 			}
 
 			try
@@ -97,9 +97,9 @@ namespace CsvTransform
 				var result = new DateTime(int.Parse(inputFields[0]), int.Parse(inputFields[1]), int.Parse(inputFields[2]));
 				return result.ToString("d");
 			}
-			catch (Exception e)
+			catch //(Exception e)
 			{
-				throw new ArgumentException($"Invalid input date field - {e} ", nameof(inputFields));
+				throw new ArgumentException($"Invalid order date field - [{inputFields[0]}/{inputFields[1]}/{inputFields[2]}].");
 			}
 		}
 	}
@@ -112,13 +112,13 @@ namespace CsvTransform
 		{
 			if (inputFields == null || inputFields.Length != 1 || string.IsNullOrEmpty(inputFields[0]))
 			{
-				throw new ArgumentException(nameof(inputFields));
+				throw new ArgumentException($"Invalid product Id field - [{inputFields[0]}].");
 			}
 
 			var result = inputFields[0].Trim();
 			if (string.IsNullOrEmpty(result) || result.All(c => Char.IsLetterOrDigit(c)))
 			{
-				throw new ArgumentException(nameof(inputFields));
+				throw new ArgumentException($"Invalid product Id field - [{inputFields[0]}].");
 			}
 
 			return result;
@@ -133,7 +133,7 @@ namespace CsvTransform
 		{
 			if (inputFields == null || inputFields.Length != 1 || string.IsNullOrEmpty(inputFields[0]))
 			{
-				throw new ArgumentException(nameof(inputFields));
+				throw new ArgumentException($"Invalid product name field - [{inputFields[0]}].");
 			}
 
 			var result = inputFields[0].Trim();
@@ -159,9 +159,9 @@ namespace CsvTransform
 				var result = decimal.Parse(inputFields[0]);
 				return string.Format("{0:.##}", result);
 			}
-			catch (Exception e)
+			catch //(Exception e)
 			{
-				throw new ArgumentException($"Invalid input quantity field - {e} ", nameof(inputFields));
+				throw new ArgumentException($"Invalid quantity field - [{inputFields[0]}].");
 			}
 		}
 	}

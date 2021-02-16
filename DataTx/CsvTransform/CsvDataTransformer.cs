@@ -66,10 +66,21 @@ namespace CsvTransform
 
 			Parallel.For(0, inputLines.Count, (index) =>
 			{
-				TransformLog logOutput;
-				var output = TransformInputLine(startLineNo + (long )index, inputLines[index], out logOutput);
+				string inputLine = inputLines[index];
+				string outputLine = string.Empty;
+				TransformLog logOutput = null;
+				long currentLineNum = startLineNo + (long)index;
 
-				result.OutputLines.Add(output);
+				try
+				{
+					outputLine = TransformInputLine(currentLineNum, inputLine, out logOutput);
+				}
+				catch(Exception e)
+				{
+					logOutput = logOutput ?? new TransformLog(currentLineNum, inputLine, e.Message); //e.ToString());
+				}
+
+				result.OutputLines.Add(outputLine);
 				if (logOutput != null) { result.Errors.Add(logOutput); }
 			});
 
@@ -112,6 +123,7 @@ namespace CsvTransform
 				var field = fields[i];
 				if (field.Length > 0 && field[0] == quoteChar)
 				{
+					var k = i;
 					fields[i] = fields[i].Substring(1);
 					for (int j = i++; i < fields.Count; ++i)
 					{
@@ -124,6 +136,7 @@ namespace CsvTransform
 							break;
 						}
 					}
+					i = k;  // restore outer loop back to the saved index value k 
 				}
 			}
 

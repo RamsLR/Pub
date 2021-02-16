@@ -60,7 +60,7 @@ namespace CsvTransform
 			List<Task<TransformerOutput>> transformTasks = new List<Task<TransformerOutput>>();
 			long currentLineNum = 0;
 
-			foreach (var lines in ReadBlockOfLines(sourcePath, 100))
+			foreach (var lines in ReadBlockOfLines(sourcePath, 10))
 			{
 				var taskStartLineNum = currentLineNum;
 				var task = Task<TransformerOutput>.Factory.StartNew(() => dataTransformer.Transform(lines, taskStartLineNum));
