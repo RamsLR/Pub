@@ -2,7 +2,7 @@
   "profiles": {
     "DataTx": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Git\\Pub\\Pub\\DataTx\\DataTx\\InputCsvFile.txt.csv\" \"C:\\Git\\Pub\\Pub\\DataTx\\DataTx\\DataTxOutputFile.txt\""
+      "commandLineArgs": "\"C:\\Git\\Pub\\Pub\\AreaPx\\AreaPx\\InputFile.txt\" \"C:\\Git\\Pub\\Pub\\AreaPx\\AreaPx\\AreaPxOutputFile.txt\""
     }
   }
 }

@@ -41,12 +41,12 @@ namespace Shapes.AreaParser
 			shapeAreaCalculators = new Dictionary<string, IShapeAreaCalculator>();
 			IShapeAreaCalculator c = new CircleAreaCalculator();
 			shapeAreaCalculators.Add(c.ShapeName, c);
-			IShapeAreaCalculator s = new CircleAreaCalculator();
-			shapeAreaCalculators.Add(c.ShapeName, s);
-			IShapeAreaCalculator r = new CircleAreaCalculator();
-			shapeAreaCalculators.Add(c.ShapeName, r);
-			IShapeAreaCalculator t = new CircleAreaCalculator();
-			shapeAreaCalculators.Add(c.ShapeName, t);
+			IShapeAreaCalculator s = new SquareAreaCalculator();
+			shapeAreaCalculators.Add(s.ShapeName, s);
+			IShapeAreaCalculator r = new RectangleAreaCalculator();
+			shapeAreaCalculators.Add(r.ShapeName, r);
+			IShapeAreaCalculator t = new TriangleAreaCalculator();
+			shapeAreaCalculators.Add(t.ShapeName, t);
 		}
 		public static ParserOutput ProcessLines(List<string> inputLines, long startLineNo)
 		{
@@ -84,9 +84,15 @@ namespace Shapes.AreaParser
 					outputErrorLog = outputErrorLog ?? new ParserErrorLog(currentLineNum, inputLine, e.Message);
 				}
 
-				System.Diagnostics.Debug.Assert(areaOutput != null);
-				result.OutputLines.Add(areaOutput); 
-				if (outputErrorLog != null) { result.Errors.Add(outputErrorLog); }
+				System.Diagnostics.Debug.Assert(!(areaOutput == null && outputErrorLog == null));
+				if (areaOutput != null)
+				{
+					result.OutputLines.Add(areaOutput);
+				}
+				else
+				{
+					result.Errors.Add(outputErrorLog);
+				}
 			} 
 			// );
 
@@ -135,10 +141,12 @@ namespace Shapes.AreaParser
 				throw new ArgumentException($"Invalid 2nd decimal parameter for shape: [{param2}]");
 			}
 
+			List<double> parameters = new List<double> { param1 };
+			if (param2.HasValue) { parameters.Add(param2.Value); }
 			AreaResult ar = new AreaResult()
 			{
 				ShapeName = inputShapeName,
-				Area = shapeAreaCalculators[inputShapeName].ComputeArea(new double[] { param1, param2.Value })
+				Area = shapeAreaCalculators[inputShapeName].ComputeArea(parameters.ToArray())
 			};
 
 			return ar;

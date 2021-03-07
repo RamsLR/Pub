@@ -1,81 +1,84 @@
-﻿using System;
+﻿using Shapes.AreaParser;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CsvTransform
+namespace Shapes.FileParser
 {
-	public static class FileTxManager
+	public static class FileProcessor
 	{
-		public static async void TransformCsvDataFileAsync(string sourcePath, string targetPath, 
-			CsvDataFieldTransforms[] fieldTransformConfigs, string[] outputFieldNames)
+		private class FileProcessorOutput
+		{
+			public List<AreaResult> AreaResults;
+			public List<ParserErrorLog> ErrorLines;
+		}
+
+		public static async void ProcessFileAsync(string sourcePath, string targetPath)
 		{
 			if (!File.Exists(sourcePath)) throw new FileNotFoundException(sourcePath);
 
-			CsvDataTransformer dataTransformer = new CsvDataTransformer(fieldTransformConfigs);
-
 			// generated the task batch of processing the input file..
 
-			var transformTasks = GenerateTransformTasks(sourcePath, dataTransformer);
+			var areaProcessorTasks = GenerateAreaProcessorTasks(sourcePath);
 
-			Task.WaitAny(transformTasks.ToArray());
+			Task.WaitAny(areaProcessorTasks.ToArray());
 
 			// process each completed task to get the output 
 
-			var txOutputList = await GetTransformedOutput(transformTasks);
+			var fpOutput = await GetFileProcessorOutput(areaProcessorTasks);
 
 			// write the output and errors to the files..
 
-			WriteTransformedOutput(targetPath, outputFieldNames, txOutputList);
+			WriteAreaResultsOutput(targetPath, fpOutput);
 
 		}
 
-		private static void WriteTransformedOutput(string targetPath, string[] outputFieldNames, List<TransformerOutput> txOutputList)
+		private static void WriteAreaResultsOutput(string targetPath, FileProcessorOutput fpOutput)
 		{
 			using (StreamWriter ow = new StreamWriter(targetPath))
 			using (StreamWriter lw = new StreamWriter(targetPath + ".log"))
 			{
-				ow.WriteLine(string.Join(",", outputFieldNames));
-				foreach (var to in txOutputList)
-				{
-					to.OutputLines.ForEach(o => ow.WriteLine(o));
-					to.Errors.ForEach(e => lw.WriteLine($"{e.LineNumber}|{e.ErrorMessage}|{e.InputLine}"));
-				}
+				ow.WriteLine("ShapeName, Area");
+				fpOutput.AreaResults.ForEach(ar => ow.WriteLine(string.Join(" ", ar.ShapeName, ar.Area.ToString())));
+
+				fpOutput.ErrorLines.ForEach(e => lw.WriteLine($"{e.LineNumber}|{e.ErrorMessage}|{e.InputLine}"));
 			}
 		}
 
-		private static async Task<List<TransformerOutput>> GetTransformedOutput(List<Task<TransformerOutput>> transformTasks)
+		private static async Task<FileProcessorOutput> GetFileProcessorOutput(List<Task<ParserOutput>> areaProcessorTasks)
 		{
-			List<TransformerOutput> txOutputList = new List<TransformerOutput>();
+			FileProcessorOutput fpOutput = new FileProcessorOutput { AreaResults = new List<AreaResult>(), ErrorLines = new List<ParserErrorLog>() };
 
-			while (transformTasks.Any())
+			while (areaProcessorTasks.Any())
 			{
-				Task<TransformerOutput> finishedTask = await Task.WhenAny(transformTasks);
-				transformTasks.Remove(finishedTask);
-				var txOutput = await finishedTask;
-				txOutputList.Add(txOutput);
+				Task<ParserOutput> finishedTask = await Task.WhenAny(areaProcessorTasks);
+				areaProcessorTasks.Remove(finishedTask);
+				var parserOutput = await finishedTask;
+				fpOutput.AreaResults.AddRange(parserOutput.OutputLines);
+				fpOutput.ErrorLines.AddRange(parserOutput.Errors);
 			}
-			txOutputList = txOutputList.OrderBy(l => l.StartLineNo).ToList();
-			return txOutputList;
+			fpOutput.AreaResults = fpOutput.AreaResults.OrderByDescending(ar => ar.Area).ToList();
+			return fpOutput;
 		}
 
-		private static List<Task<TransformerOutput>> GenerateTransformTasks(string sourcePath, CsvDataTransformer dataTransformer)
+		private static List<Task<ParserOutput>> GenerateAreaProcessorTasks(string sourcePath)
 		{
-			List<Task<TransformerOutput>> transformTasks = new List<Task<TransformerOutput>>();
+			List<Task<ParserOutput>> areaParserTasks = new List<Task<ParserOutput>>();
 			long currentLineNum = 0;
 
-			foreach (var lines in ReadBlockOfLines(sourcePath, 10))
+			foreach (var lines in ReadBlockOfLines(sourcePath, 5))
 			{
 				// create a task for each block of lines - configured as 10 lines for now (can be increased to int.MAXVALUE)
 				var taskStartLineNum = currentLineNum;
-				var task = Task<TransformerOutput>.Factory.StartNew(() => dataTransformer.Transform(lines, taskStartLineNum));
-				transformTasks.Add(task);
+				var task = Task<ParserOutput>.Factory.StartNew(() => AreaParser.AreaParser.ProcessLines(lines, currentLineNum));
+				areaParserTasks.Add(task);
 				currentLineNum += lines.Count;
 			}
 
-			return transformTasks;
+			return areaParserTasks;
 		}
 
 		private static IEnumerable<List<string>> ReadBlockOfLines(string fileName, int maxLinesInBlock = 100)

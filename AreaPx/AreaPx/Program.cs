@@ -1,5 +1,5 @@
-﻿using CsvTransform;
-using System;
+﻿using System;
+using Shapes.FileParser;
 
 namespace AreaProcessor
 {
@@ -15,16 +15,11 @@ namespace AreaProcessor
 
 			// Reads the app config section to get the list of shapes configured for Area computation
 
-			var configuredTransforms = CsvFieldConfigReader.ReadCsvDataFieldTransformConfigs();
-			Console.WriteLine("Finished reading the file transform configurations.\r\n");
-
-			Console.WriteLine("Proceeding with converting input csv file to output csv file now.");
+			Console.WriteLine("Process ingput file to compure area..");
 
 			// below call handles all of reading input file and generating the transformed output file .
 
-			FileTxManager.TransformCsvDataFileAsync(args[0], args[1], 
-				configuredTransforms.FieldTransforms.ToArray(), 
-				configuredTransforms.OutputFieldNames.ToArray());
+			FileProcessor.ProcessFileAsync(args[0], args[1]);
 
 			Console.WriteLine("Done.");
 		}
